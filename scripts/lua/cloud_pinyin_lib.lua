@@ -66,7 +66,7 @@ function M.translator(input, seg, env)
         return M.fallback_translator(input, seg, env)
     end
 
-    local ok, result = pcall(lib.fetch, M.config.engine, query)
+    local ok, result = pcall(lib.fetch, M.config.engine, query, M.config.api_url)
     if not ok then
         log.error("[cloud_pinyin] 调用失败: " .. tostring(result))
         return
