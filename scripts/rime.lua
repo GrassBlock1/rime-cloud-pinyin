@@ -25,8 +25,10 @@ cloud_pinyin_processor = cloud_pinyin_cli.processor    -- 用于监听选词提�
 
 
 -- ========== 方案 B: 动态库 (性能更好，需编译 so/dll) ==========
-
--- local cloud_pinyin_lib = require("cloud_pinyin_lib")
+-- 如果放在 ~/.local/share/fcitx5/rime/lua 的库文件无法工作，请尝试取消注释下面一行
+-- package.cpath = os.getenv("HOME") .. "/.local/share/fcitx5/rime/lua/?.so;" .. package.cpath
+--
+-- local cloud_pinyin_lib = require("libcloud_pinyin")
 -- cloud_pinyin_lib.config.engine = "sougou"
 -- cloud_pinyin_lib.config.shuangpin_schema = "flypy"  -- 双拼方案: flypy, zrm, mspy, sogou, 留空则不转换
 -- cloud_pinyin_lib.config.user_dict = true
