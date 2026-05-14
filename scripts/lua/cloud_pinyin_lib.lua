@@ -7,6 +7,9 @@ local ok, lib = pcall(require, "cloud_pinyin")
 if not ok then
     log.error("[cloud_pinyin] 无法加载动态库: " .. tostring(lib))
     lib = nil
+elseif type(lib.fetch) ~= "function" then
+    log.error("[cloud_pinyin] 动态库缺少 fetch 函数")
+    lib = nil
 end
 
 M.config = {
@@ -30,6 +33,28 @@ local function translate_input(input)
         return shuangpin.to_quanpin(input, M.config.shuangpin_schema)
     end
     return input
+end
+
+local function fetch_words(query)
+    if not lib then
+        return nil
+    end
+
+    local api_url = nil
+    if M.config.engine == "custom" then
+        if M.config.api_url == "" then
+            return {}
+        end
+        api_url = M.config.api_url
+    end
+
+    local ok, result = pcall(lib.fetch, M.config.engine, query, api_url)
+    if not ok then
+        log.error("[cloud_pinyin] 动态库调用失败: " .. tostring(result))
+        return nil
+    end
+
+    return result or {}
 end
 
 local function yield_cloud_candidate(word, input, seg)
@@ -62,14 +87,9 @@ function M.translator(input, seg, env)
 
     local query = translate_input(input)
 
-    if not lib then
+    local result = fetch_words(query)
+    if not result then
         return M.fallback_translator(input, seg, env)
-    end
-
-    local ok, result = pcall(lib.fetch, M.config.engine, query, M.config.api_url)
-    if not ok then
-        log.error("[cloud_pinyin] 调用失败: " .. tostring(result))
-        return
     end
 
     if not result or #result == 0 then
